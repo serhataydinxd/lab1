@@ -25,9 +25,12 @@
 *.la
 *.a
 *.lib
+*.ilk
+*.pdb
 
 # Executables
 *.exe
 *.out
 *.app
 *.json
+.vscode*
