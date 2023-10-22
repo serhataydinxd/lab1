@@ -2,6 +2,8 @@
 #include <fstream>
 #include <Windows.h>
 #include <vector>
+#include <chrono>
+#include <thread>
 
 void readFile(void);
 void print(void);
@@ -39,6 +41,14 @@ void readFile(void)
     cout << "Enter the file name: ";
     cin >> fileName;
     ifstream readonly(fileName, ios::in);
+    if (!readonly) {
+
+        cout << "File couldn't found. Please make sure you write it correct!" << endl;
+        this_thread::sleep_for(chrono::seconds(4));
+        system("cls");
+        return readFile();
+
+    }
     readonly >> row >> column;
     arr.resize(row);
     for (int i = 0; i < row; i++)
@@ -69,7 +79,7 @@ void print(void)
             cout << d % 10;
         }
         cout << endl
-             << " +";
+            << " +";
         for (int d = 0; d < column; d++)
         {
             cout << "-";
@@ -108,8 +118,8 @@ void findBlobs(int a, int b)
 {
     if (foundBlob)
     {
-        for (int i=a;i<row;i++){
-            for (int j=b;j<column;j++){
+        for (int i = a; i < row; i++) {
+            for (int j = b; j < column; j++) {
                 if (arrYedek[i][j] == 'x')
                 {
                     arrYedek[i][j] = 'o';
