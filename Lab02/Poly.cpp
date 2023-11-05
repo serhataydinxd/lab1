@@ -28,10 +28,10 @@ PolyNode *CreatePoly(char *expr){
 			expr++;
 		}
 		//! katsayi olmama durumunda katsayi 1 varsayilir
-		double coef = 1;
+		double coef = 1.0;
 		int exp = 0;
 		//! oyle bakma stackoverflowdan buldum. bir karakter içinde hem okuma islemini hem yazma islemini beraber yapýyor 
-		sscanf(expr, "%fx^%d", &coef, &exp);
+		sscanf_s(expr, "%fx^%d", &coef, &exp);
 		//! bunu mentoruma sordum. pointer allocate icin malloc kullanýlýyormus. az once buldugumuz node'u kaydetmek icin olusturuyoruz
 		PolyNode* nodes = (PolyNode*)malloc(sizeof(PolyNode));
 		nodes->coef = (sign == '+') ? coef : -coef;
@@ -43,6 +43,7 @@ PolyNode *CreatePoly(char *expr){
 			expr++;
 		}
 	}
+	return head;
 	return NULL;
 } //end-CreatePoly
 
@@ -51,10 +52,11 @@ PolyNode *CreatePoly(char *expr){
 ///
 void DeletePoly(PolyNode* poly) {
 	// Fill this in
+	PolyNode* tempo;
 	//! poly'nin ici tamamen bosalana kadar donguyu devam ettiriyor
 	while (poly != NULL) {
 		//! poly'nin mevcut biriminin adresini gecici ogeye atiyoruz. boylece free dedikten sonra hala islem yapabilecegimiz bir poly kalsin
-		PolyNode* tempo = poly;
+		tempo = poly;
 		//! poly'i ilerletiyoruz ve onceki kismi tempo ile siliyoruz
 		poly = poly->next;
 		//! free kullanma nedenim yukarida malloc kullanmam
@@ -70,7 +72,43 @@ void DeletePoly(PolyNode* poly) {
 //
 PolyNode* AddNode(PolyNode *head, double coef, int exp){
 	// Fill this in
-	return NULL;
+	
+	// yeni node eger ayni uslu sayý yoksa en sona atiliyor, eger gerekirse uslere gore siralamali hale cevirebilirim
+	// eger polinom bossa sikinti yapabilir testleri tam anlamadýgýmdan eklemedim ama bos olma ihtimali varsa kucuk bir parca daha eklemem lazim
+
+	//! new'i hata vermemesi için ekliyoruz. new olmazsa sadece pointer olusturulsmus oluyor isaret edilen nesne olmasý icin de new PolyNode ekleniyor. 
+	PolyNode* addedNode = new PolyNode;
+	addedNode->coef = coef;
+	addedNode->exp = exp;
+	addedNode->next = NULL;
+	//! verilecek polinomun baslangýc adresini tutan gecici deger. ana polinomu bozmamak amaclý 
+	PolyNode* tempo = head;
+	//! ayni uslu sayi bulunmasi durumuna karsi. birdaha ayni node eklenmesin diye
+	bool found = false;
+	if (tempo == NULL) {
+		addedNode->next = head;
+		head = addedNode;
+		return head;
+	}
+	//! sona gelene kadar icinde geziyor
+	while (tempo->next != NULL) {
+		//! ayni usse sahip sayi var mi diye bakiyor
+		if (tempo->exp == exp) {
+			//! var ise kendi katsayisi ile eklencek olaninkini topluyor
+			tempo->coef += coef;
+			//! node eklendigi icin foundu true yapiyor
+			found = true;
+			delete addedNode;
+		}
+		tempo = tempo->next;
+	}
+	//! eger ayni usslu yok ise sona ekliyor
+	if (!found) {
+		addedNode->next = tempo->next;
+		tempo->next = addedNode;
+	}
+	//! buradaki NULL deðerini head ile deðistirdim ama dogru mu yaptým bilmiyorum
+	return head;
 } // end-AddNode
 
 //-------------------------------------------------

@@ -1,0 +1,4 @@
+﻿  Poly.cpp
+C:\Users\Eren\Desktop\Veri Yapıları Lab\Lab02\Poly.cpp(34,18): warning C4477: 'sscanf_s' : '%f' biçim dizesi 'float *' türü bir bağımsız değişken gerektirir, ancak 1 değişen sayıda bağımsız değişkenin türü 'double *'
+C:\Users\Eren\Desktop\Veri Yapıları Lab\Lab02\Poly.cpp(34,18): message : biçim dizesinde '%lf' kullanmayı düşünün
+  Lab02.vcxproj -> C:\Users\Eren\Desktop\Veri Yapıları Lab\Lab02\x64\Debug\Lab02.exe
