@@ -90,7 +90,7 @@ void Test1() {
 	printf("Adding 2x^5: "); Print(poly);
 
 	poly = AddNode(poly, -4.4, 7);
-	printf("Adding 4.4x^7: "); Print(poly);
+	printf("Adding -4.4x^7: "); Print(poly);
 
 	poly = AddNode(poly, -2, 3);
 	printf("Adding -2x^3: "); Print(poly);

@@ -2,6 +2,8 @@
 //! malloc ve free fonksiyonlari icin ekledim
 #include <cstdlib>
 #include "Poly.h"
+#include <stdlib.h>
+#include <ctype.h>
 
 //-------------------------------------------------
 // Creates a polynomial from an expression.
@@ -16,36 +18,48 @@
 // Ex6: -3x^4    +   4x
 // Ex7: -2x  - 5
 //
-PolyNode *CreatePoly(char *expr){	
-	//! baslangýcý kaydettigimiz pointer
+PolyNode* CreatePoly(char* expr) {
 	PolyNode* head = NULL;
 	while (*expr) {
-		//! terimin basinda bir isaret yoksa '+' varsayilir
+		// Find the sign of the term
 		char sign = '+';
-		//! eger varsa sign karakterine atanir
 		if (*expr == '+' || *expr == '-') {
 			sign = *expr;
 			expr++;
 		}
-		//! katsayi olmama durumunda katsayi 1 varsayilir
-		double coef = 1.0;
+		// Read the coefficient
+		double coef = 0;
+		if (*expr == 'x') {
+			coef = 1.0;
+		}
+		else {
+			char* endptr;
+			coef = strtod(expr, &endptr);
+			expr = endptr;
+		}
+		// Find the exponent
 		int exp = 0;
-		//! oyle bakma stackoverflowdan buldum. bir karakter içinde hem okuma islemini hem yazma islemini beraber yapýyor 
-		sscanf_s(expr, "%fx^%d", &coef, &exp);
-		//! bunu mentoruma sordum. pointer allocate icin malloc kullanýlýyormus. az once buldugumuz node'u kaydetmek icin olusturuyoruz
-		PolyNode* nodes = (PolyNode*)malloc(sizeof(PolyNode));
-		nodes->coef = (sign == '+') ? coef : -coef;
-		nodes->exp = exp;
-		nodes->next = head;
-		head = nodes;
-		//! siradaki node'u bulana kadar ilerliyor. ornek girdilerde aralarinda bosluklar var ondan dolayý
+		if (*expr == 'x') {
+			if (*(expr + 1) == '^') {
+				expr += 2;
+				exp = atoi(expr);
+			}
+			else {
+				exp = 1;
+			}
+		}
+		PolyNode* node = (PolyNode*)malloc(sizeof(PolyNode));
+		node->coef = (sign == '+') ? coef : -coef;
+		node->exp = exp;
+		node->next = head;
+		head = node;
+		// Find the next term
 		while (*expr && *expr != '+' && *expr != '-') {
 			expr++;
 		}
 	}
 	return head;
-	return NULL;
-} //end-CreatePoly
+}
 
 /// -------------------------------------------------
 /// Walk over the poly nodes & delete them
@@ -74,7 +88,6 @@ PolyNode* AddNode(PolyNode *head, double coef, int exp){
 	// Fill this in
 	
 	// yeni node eger ayni uslu sayý yoksa en sona atiliyor, eger gerekirse uslere gore siralamali hale cevirebilirim
-	// eger polinom bossa sikinti yapabilir testleri tam anlamadýgýmdan eklemedim ama bos olma ihtimali varsa kucuk bir parca daha eklemem lazim
 
 	//! new'i hata vermemesi için ekliyoruz. new olmazsa sadece pointer olusturulsmus oluyor isaret edilen nesne olmasý icin de new PolyNode ekleniyor. 
 	PolyNode* addedNode = new PolyNode;
@@ -115,18 +128,122 @@ PolyNode* AddNode(PolyNode *head, double coef, int exp){
 // Adds two polynomials and returns a new polynomial that contains the result
 // Computes: poly3 = poly1 + poly2 and returns poly3
 //
-PolyNode *Add(PolyNode *poly1, PolyNode *poly2){
-	// Fill this in
-	return NULL;
-} //end-Add
+PolyNode* Add(PolyNode* poly1, PolyNode* poly2) {
+	PolyNode* result = NULL;
+	PolyNode* current1 = poly1;
+	PolyNode* current2 = poly2;
+	PolyNode* current3 = NULL;
+	PolyNode* newNode = NULL;
+
+	while (current1 != NULL || current2 != NULL) {
+		// Create a new node to store the sum of terms
+		newNode = (PolyNode*)malloc(sizeof(PolyNode));
+		newNode->next = NULL;
+
+		// If either polynomial is exhausted, use the other polynomial's term
+		if (current1 == NULL) {
+			newNode->coef = current2->coef;
+			newNode->exp = current2->exp;
+			current2 = current2->next;
+		}
+		else if (current2 == NULL) {
+			newNode->coef = current1->coef;
+			newNode->exp = current1->exp;
+			current1 = current1->next;
+		}
+		else {
+			// Add coefficients if exponents match
+			if (current1->exp == current2->exp) {
+				newNode->coef = current1->coef + current2->coef;
+				newNode->exp = current1->exp;
+				current1 = current1->next;
+				current2 = current2->next;
+			}
+			else if (current1->exp > current2->exp) {
+				newNode->coef = current1->coef;
+				newNode->exp = current1->exp;
+				current1 = current1->next;
+			}
+			else {
+				newNode->coef = current2->coef;
+				newNode->exp = current2->exp;
+				current2 = current2->next;
+			}
+		}
+
+		// Add the newNode to the result polynomial
+		if (result == NULL) {
+			result = newNode;
+			current3 = result;
+		}
+		else {
+			current3->next = newNode;
+			current3 = newNode;
+		}
+	}
+
+	return result;
+}
 
 //-------------------------------------------------
 // Subtracts poly2 from poly1 and returns the resulting polynomial
 // Computes: poly3 = poly1 - poly2 and returns poly3
 //
-PolyNode *Subtract(PolyNode *poly1, PolyNode *poly2){
-	// Fill this in
-	return NULL;
+PolyNode* Subtract(PolyNode* poly1, PolyNode* poly2) {
+	PolyNode* result = NULL;
+	PolyNode* current1 = poly1;
+	PolyNode* current2 = poly2;
+	PolyNode* current3 = NULL;
+	PolyNode* newNode = NULL;
+
+	while (current1 != NULL || current2 != NULL) {
+		// Create a new node to store the sum of terms
+		newNode = (PolyNode*)malloc(sizeof(PolyNode));
+		newNode->next = NULL;
+
+		// If either polynomial is exhausted, use the other polynomial's term
+		if (current1 == NULL) {
+			newNode->coef = current2->coef;
+			newNode->exp = current2->exp;
+			current2 = current2->next;
+		}
+		else if (current2 == NULL) {
+			newNode->coef = current1->coef;
+			newNode->exp = current1->exp;
+			current1 = current1->next;
+		}
+		else {
+			// Add coefficients if exponents match
+			if (current1->exp == current2->exp) {
+				newNode->coef = current1->coef - current2->coef;
+				newNode->exp = current1->exp;
+				current1 = current1->next;
+				current2 = current2->next;
+			}
+			else if (current1->exp > current2->exp) {
+				newNode->coef = current1->coef;
+				newNode->exp = current1->exp;
+				current1 = current1->next;
+			}
+			else {
+				newNode->coef = current2->coef;
+				newNode->exp = current2->exp;
+				current2 = current2->next;
+			}
+		}
+
+		// Add the newNode to the result polynomial
+		if (result == NULL) {
+			result = newNode;
+			current3 = result;
+		}
+		else {
+			current3->next = newNode;
+			current3 = newNode;
+		}
+	}
+
+	return result;
 } //end-Substract
 
 //-------------------------------------------------
@@ -150,10 +267,23 @@ double Evaluate(PolyNode *poly, double x){
 // Computes the derivative of the polynomial and returns it
 // Ex: poly(x) = 3x^4 - 2x + 1-->Derivative(poly) = 12x^3 - 2
 //
-PolyNode *Derivative(PolyNode *poly){
-	// Fill this in
-	return NULL;
-} //end-Derivative
+PolyNode* Derivative(PolyNode* poly) {
+    PolyNode* derivative = NULL;
+    PolyNode* current = poly;
+
+    while (current != NULL) {
+        if (current->exp != 0) {
+            PolyNode* new_node = (PolyNode*)malloc(sizeof(PolyNode));
+            new_node->coef = current->coef * current->exp;
+            new_node->exp = current->exp - 1;
+            new_node->next = derivative;
+            derivative = new_node;
+        }
+        current = current->next;
+    }
+
+    return derivative;
+}
 
 //-------------------------------------------------
 // Plots the polynomial in the range [x1, x2].
