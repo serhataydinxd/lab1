@@ -65,7 +65,7 @@ int Deque::RemoveFront() {
 		DequeNode* temp = head;
 		head = head->next;
 		if (noOfItems==1) {
-			tail=NULL;
+			head = tail = NULL;
 		}
 		else {
 			head->prev = NULL;
@@ -90,7 +90,7 @@ int Deque::RemoveRear() {
 		DequeNode* temp = tail;
 		tail = tail->prev;
 		if (noOfItems==1) {
-			head = NULL;
+			head = tail = NULL;
 		}
 		else {
 			tail->next = NULL;

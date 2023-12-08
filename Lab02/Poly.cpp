@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 //! malloc ve free fonksiyonlari icin ekledim
 #include <cstdlib>
@@ -57,7 +58,31 @@ PolyNode* CreatePoly(char* expr) {
 		while (*expr && *expr != '+' && *expr != '-') {
 			expr++;
 		}
+		//delete exponent zeros
+
 	}
+	//go through the list and delete nodes with zero coefficients
+	PolyNode* prev = NULL;
+	PolyNode* curr = head;
+	while (curr) {
+		if (curr->coef == 0) {
+			if (prev) {
+				prev->next = curr->next;
+				free(curr);
+				curr = prev->next;
+			}
+			else {
+				head = curr->next;
+				free(curr);
+				curr = head;
+			}
+		}
+		else {
+			prev = curr;
+			curr = curr->next;
+		}
+	}
+
 	return head;
 }
 
@@ -120,7 +145,44 @@ PolyNode* AddNode(PolyNode *head, double coef, int exp){
 		addedNode->next = tempo->next;
 		tempo->next = addedNode;
 	}
-	//! buradaki NULL deðerini head ile deðistirdim ama dogru mu yaptým bilmiyorum
+
+	//go through the list and delete nodes with zero coefficients
+	PolyNode* prev = NULL;
+	PolyNode* curr = head;
+	while (curr) {
+		if (curr->coef == 0) {
+			if (prev) {
+				prev->next = curr->next;
+				free(curr);
+				curr = prev->next;
+			}
+			else {
+				head = curr->next;
+				free(curr);
+				curr = head;
+			}
+		}
+		else {
+			prev = curr;
+			curr = curr->next;
+		}
+	}
+	//add the nodes with the same exponent
+	//! ayni usslu sayilarin toplanmasi
+	tempo = head;
+	while (tempo->next != NULL) {
+		if (tempo->exp == tempo->next->exp) {
+			tempo->coef += tempo->next->coef;
+			PolyNode* temp = tempo->next;
+			tempo->next = tempo->next->next;
+			delete temp;
+		}
+		else {
+			tempo = tempo->next;
+		}
+	}
+
+
 	return head;
 } // end-AddNode
 
@@ -180,6 +242,23 @@ PolyNode* Add(PolyNode* poly1, PolyNode* poly2) {
 			current3->next = newNode;
 			current3 = newNode;
 		}
+	}
+	current1 = result;
+
+	while (current1 != NULL) {
+		current2 = current1->next;
+		while (current2 != NULL) {
+			if (current1->exp == current2->exp) {
+				current1->coef += current2->coef;
+				current1->next = current2->next;
+				free(current2);
+				current2 = current1->next;
+			}
+			else {
+				current2 = current2->next;
+			}
+		}
+		current1 = current1->next;
 	}
 
 	return result;
@@ -242,6 +321,25 @@ PolyNode* Subtract(PolyNode* poly1, PolyNode* poly2) {
 			current3 = newNode;
 		}
 	}
+	current1 = result;
+
+	while (current1 != NULL) {
+		current2 = current1->next;
+		while (current2 != NULL) {
+			if (current1->exp == current2->exp) {
+				current1->coef += current2->coef;
+				current1->next = current2->next;
+				free(current2);
+				current2 = current1->next;
+			}
+			else {
+				current2 = current2->next;
+			}
+		}
+		current1 = current1->next;
+	}
+	
+	
 
 	return result;
 } //end-Substract
@@ -251,16 +349,70 @@ PolyNode* Subtract(PolyNode* poly1, PolyNode* poly2) {
 // Computes: poly3 = poly1 * poly2 and returns poly3
 //
 PolyNode *Multiply(PolyNode *poly1, PolyNode *poly2){
-	// Fill this in
-	return NULL;
+	PolyNode *result = NULL;
+	PolyNode *current1 = poly1;
+	PolyNode *current2 = poly2;
+	PolyNode *current3 = NULL;
+	PolyNode *newNode = NULL;
+
+	while (current1 != NULL) {
+		current2 = poly2;
+		while (current2 != NULL) {
+			// Create a new node to store the sum of terms
+			newNode = (PolyNode *)malloc(sizeof(PolyNode));
+			newNode->next = NULL;
+			// Multiply coefficients and add exponents
+			newNode->coef = current1->coef * current2->coef;
+			newNode->exp = current1->exp + current2->exp;
+			// Add the newNode to the result polynomial
+			if (result == NULL) {
+				result = newNode;
+				current3 = result;
+			}
+			else {
+				current3->next = newNode;
+				current3 = newNode;
+			}
+			current2 = current2->next;
+		}
+		current1 = current1->next;
+	}
+	//go through each node and add like terms
+	current1 = result;
+
+	while (current1 != NULL) {
+		current2 = current1->next;
+		while (current2 != NULL) {
+			if (current1->exp == current2->exp) {
+				current1->coef += current2->coef;
+				current1->next = current2->next;
+				free(current2);
+				current2 = current1->next;
+			}
+			else {
+				current2 = current2->next;
+			}
+		}
+		current1 = current1->next;
+	}
+
+
+	return result;
 } //end-Multiply
 
 //-------------------------------------------------
 // Evaluates the polynomial at a particular "x" value and returns the result
 //
 double Evaluate(PolyNode *poly, double x){
-	// Fill this in
-	return 0;
+	double result = 0;
+	PolyNode* current = poly;
+
+	while (current != NULL) {
+		result += current->coef * pow(x, current->exp);
+		current = current->next;
+	}
+
+	return result;
 } //end-Evaluate
 
 //-------------------------------------------------
@@ -294,5 +446,27 @@ PolyNode* Derivative(PolyNode* poly) {
 // then just skip it. Otherwise put a '*' char depicting the curve
 //
 void Plot(PolyNode *poly, int x1, int x2){
-	// Fill this in	
+	int y, x;
+	for (y = 12; y >= -12; y--) {
+		for (x = x1; x <= x2; x++) {
+			double value = Evaluate(poly, x);
+
+			if (value >= y - 0.5 && value < y + 0.5) {
+				std::cout << "*";
+			}
+			else if (y == 0 && (x == 0 || x == x1 || x == x2)) {
+				std::cout << "+";
+			}
+			else if (y == 0) {
+				std::cout << "-";
+			}
+			else if (x == 0) {
+				std::cout << "|";
+			}
+			else {
+				std::cout << " ";
+			}
+		}
+		std::cout<<std::endl;
+	}
 } //end-Plot
