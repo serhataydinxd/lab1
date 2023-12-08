@@ -21,9 +21,9 @@ Deque::~Deque() {
 /// Adds a new item to the front of the Deque
 /// 
 void Deque::AddFront(int item) {
-	if (head == NULL)
+	if (noOfItems == 0) {
 		tail = head = new DequeNode(item);
-
+	}
 	// Inserts node at the front end
 	else {
 		DequeNode* newNode = new DequeNode(item);
@@ -39,7 +39,7 @@ void Deque::AddFront(int item) {
 /// Adds a new item to the end of the Deque
 /// 
 void Deque::AddRear(int item) {
-	if (tail == NULL) {
+	if (noOfItems==0) {
 		head = tail = new DequeNode(item);
 	}
 
@@ -58,17 +58,23 @@ void Deque::AddRear(int item) {
 /// If the Deque is empty, throw an exception
 /// 
 int Deque::RemoveFront() {
-	if (head == NULL) {
+	if (noOfItems==0) {
 		throw std::runtime_error("Deque is empty");
 	}
 	else {
 		DequeNode* temp = head;
 		head = head->next;
+		if (noOfItems==1) {
+			tail=NULL;
+		}
+		else {
+			head->prev = NULL;
+		}
 		int item = temp->item;
-		delete temp;
+		free (temp);
 		noOfItems--;
 		return item;
-	}
+	} 
 	return 0;
 } //end-RemoveFront
 
@@ -77,14 +83,20 @@ int Deque::RemoveFront() {
 /// If the Deque is empty, throw an exception
 /// 
 int Deque::RemoveRear() {
-	if (tail == NULL) {
+	if (noOfItems==0){
 		throw std::runtime_error("Deque is empty");
 	}
 	else {
 		DequeNode* temp = tail;
 		tail = tail->prev;
+		if (noOfItems==1) {
+			head = NULL;
+		}
+		else {
+			tail->next = NULL;
+		}
 		int item = temp->item;
-		delete temp;
+		free (temp);
 		noOfItems--;
 		return item;
 	}
@@ -96,7 +108,7 @@ int Deque::RemoveRear() {
 /// If the Deque is empty, throw an exception
 /// 
 int Deque::Front() {
-	if(head == NULL)
+	if(noOfItems==0)
 		throw std::runtime_error("Deque is empty");
 	else
 		return head->item;
@@ -107,7 +119,7 @@ int Deque::Front() {
 /// If the Deque is empty, throw an exception
 /// 
 int Deque::Rear() {
-	if(tail == NULL)
+	if(noOfItems==0)
 		throw std::runtime_error("Deque is empty");
 	else
 		return tail->item;
