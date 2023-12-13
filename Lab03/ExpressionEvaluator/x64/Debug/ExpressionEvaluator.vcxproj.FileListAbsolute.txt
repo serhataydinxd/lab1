@@ -1,1 +1,0 @@
-C:\Users\Win10\Desktop\lab1\Lab03\ExpressionEvaluator\x64\Debug\ExpressionEvaluator.exe
