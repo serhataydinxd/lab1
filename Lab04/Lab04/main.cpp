@@ -64,7 +64,6 @@ int Test1() {
 	catch (exception const& ex) {
 		cerr << "Exception: " << ex.what() << endl;
 	} //end-catch
-
 	return 20;
 } //end-Test1
 
