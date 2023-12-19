@@ -18,6 +18,7 @@ void ThreadedBST::eraseTreeNodes(BSTNode* node) {
 /// Adds a given key to the BST
 /// 
 void ThreadedBST::add(int key) {
+    // If tree is empty create root
     if (root == nullptr) {
         root = new BSTNode(key);
     }
@@ -64,68 +65,100 @@ void ThreadedBST::add(int key) {
 /// Removes a given key from the BST (if it exists)
 /// 
 void ThreadedBST::remove(int key) {
-    BSTNode* current = root;
-    BSTNode* parent = nullptr;
-    bool isLeftChild = false;
+	BSTNode* current = root;
+	BSTNode* parent = nullptr;
+	bool found = false;
 
-    while (current != nullptr) {
-        if (key < current->key) {
-            parent = current;
-            current = (current->leftLinkType == THREAD) ? nullptr : current->left;
-            isLeftChild = true;
-        }
-        else if (key > current->key) {
-            parent = current;
-            current = (current->rightLinkType == THREAD) ? nullptr : current->right;
-            isLeftChild = false;
-        }
-        else {
-            // Key found
-            if (current->leftLinkType == CHILD && current->rightLinkType == CHILD) {
-                // Node has two children
-                // Find the inorder successor
-                BSTNode* successor = current->right;
-                BSTNode* successorParent = current;
+	// Find the node to be removed
+	while (current != nullptr) {
+		if (key == current->key) {
+			found = true;
+			break;
+		} else if (key < current->key) {
+			if (current->leftLinkType == THREAD) {
+				break;
+			}
+			parent = current;
+			current = current->left;
+		} else {
+			if (current->rightLinkType == THREAD) {
+				break;
+			}
+			parent = current;
+			current = current->right;
+		}
+	}
 
-                while (successor->leftLinkType == CHILD) {
-                    successorParent = successor;
-                    successor = successor->left;
-                }
+	if (!found) {
+		return;
+	}
 
-                // Copy the successor's key to the current node
-                current->key = successor->key;
-
-                // Remove the successor node
-                if (successorParent->left == successor) {
-                    successorParent->left = successor->right;
-                }
-                else {
-                    successorParent->right = successor->right;
-                }
-
-                delete successor;
-
-                return; // Exit the function after removal
-            }
-
-            // Node has one child or no child
-            BSTNode* child = (current->leftLinkType == CHILD) ? current->left : current->right;
-
-            if (current == root) {
-                root = child;
-            }
-            else if (isLeftChild) {
-                parent->left = child;
-            }
-            else {
-                parent->right = child;
-            }
-
-            delete current;
-
-            return; // Exit the function after removal
-        }
-    }
+	// If node has no children
+	if (current->leftLinkType == THREAD && current->rightLinkType == THREAD) {
+		if (parent == nullptr) {
+			root = nullptr;
+		} else if (current == parent->left) {
+			parent->leftLinkType = THREAD;
+			parent->left = current->left;
+		} else {
+			parent->rightLinkType = THREAD;
+			parent->right = current->right;
+		}
+		delete current;
+	}
+	// If node has only left child
+	else if (current->leftLinkType == THREAD) {
+		BSTNode* successor = current->right;
+		while (successor->leftLinkType == CHILD) {
+			successor = successor->left;
+		}
+		successor->left = current->left;
+		if (parent == nullptr) {
+			root = successor;
+		} else if (current == parent->left) {
+			parent->left = successor;
+		} else {
+			parent->right = successor;
+		}
+		delete current;
+	}
+	// If node has only right child
+	else if (current->rightLinkType == THREAD) {
+		BSTNode* predecessor = current->left;
+		while (predecessor->rightLinkType == CHILD) {
+			predecessor = predecessor->right;
+		}
+		predecessor->right = current->right;
+		if (parent == nullptr) {
+			root = predecessor;
+		} else if (current == parent->left) {
+			parent->left = predecessor;
+		} else {
+			parent->right = predecessor;
+		}
+		delete current;
+	}
+	// If node has both left and right children
+	else {
+		BSTNode* predecessor = current->left;
+		while (predecessor->rightLinkType == CHILD) {
+			predecessor = predecessor->right;
+		}
+		predecessor->right = current->right;
+		BSTNode* successor = current->right;
+		while (successor->leftLinkType == CHILD) {
+			successor = successor->left;
+		}
+		successor->left = predecessor;
+		if (parent == nullptr) {
+			root = successor;
+		} else if (current == parent->left) {
+			parent->left = successor;
+		} else {
+			parent->right = successor;
+		}
+		delete current;
+	}
 } // end-remove
 
 ///-----------------------------------------------
@@ -133,7 +166,7 @@ void ThreadedBST::remove(int key) {
 /// Return a pointer to the node that holds the key
 /// If the key is not found, return NULL
 /// 
-BSTNode *ThreadedBST::find(int key) {
+BSTNode* ThreadedBST::find(int key) {
     BSTNode* current = root;
     while (current != nullptr) {
         if (key < current->key) {
@@ -148,7 +181,7 @@ BSTNode *ThreadedBST::find(int key) {
         }
     }
     // Key not found
-	return NULL;
+    return NULL;
 } // end-find
 
 ///-----------------------------------------------
@@ -201,14 +234,18 @@ BSTNode* ThreadedBST::previous(BSTNode* node) {
 /// If the inorder successor does not exist, returns NULL
 /// 
 BSTNode* ThreadedBST::next(BSTNode* node) {
+    if (node == nullptr) {
+        return nullptr;
+    }
+
     if (node->rightLinkType == THREAD) {
         return node->right;
     }
     else {
         BSTNode* successor = node->right;
-        while (successor->leftLinkType == CHILD) {
+        while (successor != nullptr && successor->leftLinkType == CHILD) {
             successor = successor->left;
         }
         return successor;
     }
-} // end-next
+}
